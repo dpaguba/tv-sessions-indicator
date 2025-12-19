@@ -124,11 +124,10 @@ parse_time(time_str) =>
     hour * 60 + minute
 
 // Check if current bar is in session
-in_session(start_time_str, end_time_str) =>
+in_session(start_time_str, end_time_str, tz_offset) =>
     start_minutes = parse_time(start_time_str)
     end_minutes = parse_time(end_time_str)
-    tz_offset = get_timezone_offset()
-    current_minutes = (hour(time) * 60 + minute(time) + tz_offset) % 1440
+    current_minutes = (hour(time) * 60 + minute(time) + tz_offset + 1440) % 1440
 
     if end_minutes < start_minutes
         // Session crosses midnight
@@ -137,11 +136,10 @@ in_session(start_time_str, end_time_str) =>
         current_minutes >= start_minutes and current_minutes < end_minutes
 
 // Detect session start
-is_session_start(start_time_str) =>
+is_session_start(start_time_str, tz_offset) =>
     start_minutes = parse_time(start_time_str)
-    tz_offset = get_timezone_offset()
-    current_minutes = (hour(time) * 60 + minute(time) + tz_offset) % 1440
-    prev_minutes = (hour(time[1]) * 60 + minute(time[1]) + tz_offset) % 1440
+    current_minutes = (hour(time) * 60 + minute(time) + tz_offset + 1440) % 1440
+    prev_minutes = (hour(time[1]) * 60 + minute(time[1]) + tz_offset + 1440) % 1440
 
     // Check if we just crossed into the session start time
     if prev_minutes < start_minutes and current_minutes >= start_minutes
@@ -153,11 +151,10 @@ is_session_start(start_time_str) =>
         false
 
 // Detect session end
-is_session_end(end_time_str) =>
+is_session_end(end_time_str, tz_offset) =>
     end_minutes = parse_time(end_time_str)
-    tz_offset = get_timezone_offset()
-    current_minutes = (hour(time) * 60 + minute(time) + tz_offset) % 1440
-    prev_minutes = (hour(time[1]) * 60 + minute(time[1]) + tz_offset) % 1440
+    current_minutes = (hour(time) * 60 + minute(time) + tz_offset + 1440) % 1440
+    prev_minutes = (hour(time[1]) * 60 + minute(time[1]) + tz_offset + 1440) % 1440
 
     // Check if we just crossed the session end time
     if prev_minutes < end_minutes and current_minutes >= end_minutes
@@ -213,20 +210,13 @@ draw_session_box(start_bar, end_bar, sess_high, sess_low, sess_color, border_sty
 
         // Draw label
         if show_labels and show_name
-            label_y = label_position == "Top" ? sess_high : label_position == "Bottom" ? sess_low : (sess_high + sess_low) / 2
-            label_style_val = label_position == "Top" ?
-                 (label_location == "Outside" ? label.style_label_down : label.style_label_up) :
-                 label_position == "Bottom" ?
-                 (label_location == "Outside" ? label.style_label_up : label.style_label_down) :
-                 label.style_label_center
-
             label.new(
-                 x=end_bar,
-                 y=label_y,
+                 x=start_bar,
+                 y=sess_high,
                  text=sess_name,
-                 color=sess_color,
-                 textcolor=color.white,
-                 style=label_style_val,
+                 color=color.new(color.white, 100),
+                 textcolor=sess_color,
+                 style=label.style_label_lower_left,
                  size=get_label_size(label_size)
              )
 
@@ -275,8 +265,10 @@ draw_session_box(start_bar, end_bar, sess_high, sess_low, sess_color, border_sty
              )
 
 // ==================== SESSION 1: LONDON ====================
+tz_offset = get_timezone_offset()
+
 if session1_enabled
-    if is_session_start(session1_start)
+    if is_session_start(session1_start, tz_offset)
         session1_active := true
         session1_start_bar := bar_index
         session1_high := high
@@ -286,7 +278,7 @@ if session1_enabled
         session1_high := math.max(session1_high, high)
         session1_low := math.min(session1_low, low)
 
-    if is_session_end(session1_end) and session1_active
+    if is_session_end(session1_end, tz_offset) and session1_active
         session1_active := false
         draw_session_box(session1_start_bar, bar_index, session1_high, session1_low,
              session1_color, get_border_style(box_style_input), box_thickness, box_transparency,
@@ -295,7 +287,7 @@ if session1_enabled
 
 // ==================== SESSION 2: NEW YORK ====================
 if session2_enabled
-    if is_session_start(session2_start)
+    if is_session_start(session2_start, tz_offset)
         session2_active := true
         session2_start_bar := bar_index
         session2_high := high
@@ -305,7 +297,7 @@ if session2_enabled
         session2_high := math.max(session2_high, high)
         session2_low := math.min(session2_low, low)
 
-    if is_session_end(session2_end) and session2_active
+    if is_session_end(session2_end, tz_offset) and session2_active
         session2_active := false
         draw_session_box(session2_start_bar, bar_index, session2_high, session2_low,
              session2_color, get_border_style(box_style_input), box_thickness, box_transparency,
@@ -314,7 +306,7 @@ if session2_enabled
 
 // ==================== SESSION 3: TOKYO ====================
 if session3_enabled
-    if is_session_start(session3_start)
+    if is_session_start(session3_start, tz_offset)
         session3_active := true
         session3_start_bar := bar_index
         session3_high := high
@@ -324,7 +316,7 @@ if session3_enabled
         session3_high := math.max(session3_high, high)
         session3_low := math.min(session3_low, low)
 
-    if is_session_end(session3_end) and session3_active
+    if is_session_end(session3_end, tz_offset) and session3_active
         session3_active := false
         draw_session_box(session3_start_bar, bar_index, session3_high, session3_low,
              session3_color, get_border_style(box_style_input), box_thickness, box_transparency,
@@ -333,7 +325,7 @@ if session3_enabled
 
 // ==================== SESSION 4: FRANKFURT ====================
 if session4_enabled
-    if is_session_start(session4_start)
+    if is_session_start(session4_start, tz_offset)
         session4_active := true
         session4_start_bar := bar_index
         session4_high := high
@@ -343,7 +335,7 @@ if session4_enabled
         session4_high := math.max(session4_high, high)
         session4_low := math.min(session4_low, low)
 
-    if is_session_end(session4_end) and session4_active
+    if is_session_end(session4_end, tz_offset) and session4_active
         session4_active := false
         draw_session_box(session4_start_bar, bar_index, session4_high, session4_low,
              session4_color, get_border_style(box_style_input), box_thickness, box_transparency,

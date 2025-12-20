@@ -6,9 +6,12 @@ timezone_input = input.string("GMT+2", "Timezone", options=["GMT+0", "GMT+1", "G
 show_history = input.bool(true, "History", group="GENERAL")
 
 // Calculate timezone offset in minutes
+// Exchange time appears to be UTC+7, so we need to convert to user's timezone
 get_timezone_offset() =>
     tz = timezone_input
-    if tz == "GMT+0"
+    exchange_offset = 7 * 60  // Exchange is UTC+7
+
+    user_offset = if tz == "GMT+0"
         0
     else if tz == "GMT+1"
         60
@@ -29,13 +32,15 @@ get_timezone_offset() =>
     else
         0
 
+    exchange_offset - user_offset  // Convert from exchange time to user time
+
 // ==================== SESSION 1: LONDON ====================
 session1_enabled = input.bool(true, "Session 1:", group="#1 SESSION", inline="s1")
 session1_name = input.string("London", "", group="#1 SESSION", inline="s1")
 session1_color = input.color(color.new(color.blue, 0), "", group="#1 SESSION", inline="s1")
 
-session1_start = input.string("10:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#1 SESSION", inline="s1_time")
-session1_end = input.string("15:00", "", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#1 SESSION", inline="s1_time")
+session1_start = input.string("09:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#1 SESSION", inline="s1_time")
+session1_end = input.string("14:00", "", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#1 SESSION", inline="s1_time")
 
 session1_extend = input.bool(false, "Extend", group="#1 SESSION")
 session1_fibonacci = input.bool(false, "Fibonacci", group="#1 SESSION")
@@ -46,7 +51,7 @@ session2_enabled = input.bool(true, "Session 2:", group="#2 SESSION", inline="s2
 session2_name = input.string("New York", "", group="#2 SESSION", inline="s2")
 session2_color = input.color(color.new(color.teal, 0), "", group="#2 SESSION", inline="s2")
 
-session2_start = input.string("15:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#2 SESSION", inline="s2_time")
+session2_start = input.string("14:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#2 SESSION", inline="s2_time")
 session2_end = input.string("23:00", "", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#2 SESSION", inline="s2_time")
 
 session2_extend = input.bool(false, "Extend", group="#2 SESSION")
@@ -58,8 +63,8 @@ session3_enabled = input.bool(true, "Session 3:", group="#3 SESSION", inline="s3
 session3_name = input.string("Tokyo", "", group="#3 SESSION", inline="s3")
 session3_color = input.color(color.new(#5F6B8A, 0), "", group="#3 SESSION", inline="s3")
 
-session3_start = input.string("02:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#3 SESSION", inline="s3_time")
-session3_end = input.string("09:00", "", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#3 SESSION", inline="s3_time")
+session3_start = input.string("01:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#3 SESSION", inline="s3_time")
+session3_end = input.string("08:00", "", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#3 SESSION", inline="s3_time")
 
 session3_extend = input.bool(false, "Extend", group="#3 SESSION")
 session3_fibonacci = input.bool(false, "Fibonacci", group="#3 SESSION")
@@ -70,8 +75,8 @@ session4_enabled = input.bool(true, "Session 4:", group="#4 SESSION", inline="s4
 session4_name = input.string("Frankfurt", "", group="#4 SESSION", inline="s4")
 session4_color = input.color(color.new(#C10080, 0), "", group="#4 SESSION", inline="s4")
 
-session4_start = input.string("09:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#4 SESSION", inline="s4_time")
-session4_end = input.string("10:00", "", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#4 SESSION", inline="s4_time")
+session4_start = input.string("08:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#4 SESSION", inline="s4_time")
+session4_end = input.string("09:00", "", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#4 SESSION", inline="s4_time")
 
 session4_extend = input.bool(false, "Extend", group="#4 SESSION")
 session4_fibonacci = input.bool(false, "Fibonacci", group="#4 SESSION")
@@ -159,8 +164,11 @@ is_session_end(end_time_str, tz_offset) =>
     // Check if we just crossed the session end time
     if prev_minutes < end_minutes and current_minutes >= end_minutes
         true
+    // Handle midnight crossing (when session ends at 23:00, also end at midnight 00:00)
     else if end_minutes == 0 and prev_minutes > current_minutes
-        // Handle midnight crossing
+        true
+    // Handle end of day (23:00 -> 00:00 next day)
+    else if end_minutes >= 1380 and current_minutes < 60 and prev_minutes > end_minutes
         true
     else
         false

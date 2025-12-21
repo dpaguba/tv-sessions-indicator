@@ -2,137 +2,213 @@
 indicator("Trading Sessions Indicator", overlay=true, max_boxes_count=500, max_labels_count=500, max_lines_count=500)
 
 // ==================== GENERAL SETTINGS ====================
-timezone_input = input.string("GMT+2", "Timezone", options=["GMT+0", "GMT+1", "GMT+2", "GMT+3", "GMT-4", "GMT-5", "GMT-6", "GMT-7", "GMT-8"], group="GENERAL")
-show_history = input.bool(true, "History", group="GENERAL")
-
-// Calculate timezone offset in minutes
-// Exchange time appears to be UTC+7, so we need to convert to user's timezone
-get_timezone_offset() =>
-    tz = timezone_input
-    exchange_offset = 7 * 60  // Exchange is UTC+7
-
-    user_offset = if tz == "GMT+0"
-        0
-    else if tz == "GMT+1"
-        60
-    else if tz == "GMT+2"
-        120
-    else if tz == "GMT+3"
-        180
-    else if tz == "GMT-4"
-        -240
-    else if tz == "GMT-5"
-        -300
-    else if tz == "GMT-6"
-        -360
-    else if tz == "GMT-7"
-        -420
-    else if tz == "GMT-8"
-        -480
-    else
-        0
-
-    exchange_offset - user_offset  // Convert from exchange time to user time
-
-// ==================== SESSION 1: LONDON ====================
-session1_enabled = input.bool(true, "Session 1:", group="#1 SESSION", inline="s1")
-session1_name = input.string("London", "", group="#1 SESSION", inline="s1")
-session1_color = input.color(color.new(color.blue, 0), "", group="#1 SESSION", inline="s1")
-
-session1_start = input.string("09:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#1 SESSION", inline="s1_time")
-session1_end = input.string("14:00", "", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#1 SESSION", inline="s1_time")
-
-session1_extend = input.bool(false, "Extend", group="#1 SESSION")
-session1_fibonacci = input.bool(false, "Fibonacci", group="#1 SESSION")
-session1_zone = input.bool(false, "Zone", group="#1 SESSION")
-
-// ==================== SESSION 2: NEW YORK ====================
-session2_enabled = input.bool(true, "Session 2:", group="#2 SESSION", inline="s2")
-session2_name = input.string("New York", "", group="#2 SESSION", inline="s2")
-session2_color = input.color(color.new(color.teal, 0), "", group="#2 SESSION", inline="s2")
-
-session2_start = input.string("14:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#2 SESSION", inline="s2_time")
-session2_end = input.string("23:00", "", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#2 SESSION", inline="s2_time")
-
-session2_extend = input.bool(false, "Extend", group="#2 SESSION")
-session2_fibonacci = input.bool(false, "Fibonacci", group="#2 SESSION")
-session2_zone = input.bool(false, "Zone", group="#2 SESSION")
-
-// ==================== SESSION 3: TOKYO ====================
-session3_enabled = input.bool(true, "Session 3:", group="#3 SESSION", inline="s3")
-session3_name = input.string("Tokyo", "", group="#3 SESSION", inline="s3")
-session3_color = input.color(color.new(#5F6B8A, 0), "", group="#3 SESSION", inline="s3")
-
-session3_start = input.string("01:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#3 SESSION", inline="s3_time")
-session3_end = input.string("08:00", "", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#3 SESSION", inline="s3_time")
-
-session3_extend = input.bool(false, "Extend", group="#3 SESSION")
-session3_fibonacci = input.bool(false, "Fibonacci", group="#3 SESSION")
-session3_zone = input.bool(false, "Zone", group="#3 SESSION")
-
-// ==================== SESSION 4: FRANKFURT ====================
-session4_enabled = input.bool(true, "Session 4:", group="#4 SESSION", inline="s4")
-session4_name = input.string("Frankfurt", "", group="#4 SESSION", inline="s4")
-session4_color = input.color(color.new(#C10080, 0), "", group="#4 SESSION", inline="s4")
-
-session4_start = input.string("08:00", "Time", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#4 SESSION", inline="s4_time")
-session4_end = input.string("09:00", "", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="#4 SESSION", inline="s4_time")
-
-session4_extend = input.bool(false, "Extend", group="#4 SESSION")
-session4_fibonacci = input.bool(false, "Fibonacci", group="#4 SESSION")
-session4_zone = input.bool(false, "Zone", group="#4 SESSION")
+show_history = input.bool(true, "Show History", group="GENERAL")
+use_dst = input.bool(true, "Use DST (Daylight Saving Time)", group="GENERAL", tooltip="When enabled, sessions will use DST open/close times. When disabled, sessions will use standard time.")
 
 // ==================== BOX SETTINGS ====================
-box_style_input = input.string("dot", "Stil", options=["solid", "dot", "dash"], group="BOX", inline="box1")
-box_thickness = input.int(0, "Thickness", minval=0, maxval=5, group="BOX", inline="box2")
-box_transparency = input.int(93, "Transparency", minval=0, maxval=100, group="BOX", inline="box3")
+box_transparency = input.int(93, "Background Transparency", minval=0, maxval=100, group="BOX SETTINGS", inline="box1")
 
-// ==================== FENSTER-LABEL (WINDOW LABEL) ====================
-show_labels = input.bool(true, "Show labels", group="FENSTER-LABEL", inline="label1")
-label_size = input.string("Klein", "", options=["Klein", "Normal", "Gross"], group="FENSTER-LABEL", inline="label1")
-
-label_position = input.string("Top", "Position", options=["Top", "Middle", "Bottom"], group="FENSTER-LABEL", inline="label2")
-label_location = input.string("Outside", "", options=["Inside", "Outside"], group="FENSTER-LABEL", inline="label2")
-
-show_name = input.bool(true, "Name", group="FENSTER-LABEL", inline="label3")
-show_kurs = input.bool(false, "Kurs", group="FENSTER-LABEL", inline="label3")
-show_pips = input.bool(false, "Pips", group="FENSTER-LABEL", inline="label3")
-show_tage = input.bool(false, "Tage", group="FENSTER-LABEL", inline="label3")
-
-// ==================== FIBONACCI SETTINGS ====================
-fib_style_input = input.string("sol", "Stil", options=["solid", "sol", "dash"], group="FIBONACCI", inline="fib1")
-fib_thickness = input.int(1, "Thickness", minval=1, maxval=5, group="FIBONACCI", inline="fib2")
+// ==================== LABEL SETTINGS ====================
+show_labels = input.bool(true, "Show Labels", group="LABEL SETTINGS", inline="label1")
+label_size = input.string("small", "Label Size", options=["tiny", "small", "normal", "large", "huge"], group="LABEL SETTINGS", inline="label1")
+label_position = input.string("Top", "Position", options=["Top", "Bottom"], group="LABEL SETTINGS", inline="label2")
+label_align = input.string("Left", "Align", options=["Left", "Center", "Right"], group="LABEL SETTINGS", inline="label3")
 
 // ==================== ZONE SETTINGS ====================
-zone_periods = input.int(20, "Periods (minutes)", minval=1, group="ZONE", inline="zone1")
-zone_transparency = input.int(88, "Transparency", minval=0, maxval=100, group="ZONE", inline="zone2")
+zone_periods = input.int(20, "Zone Periods (minutes)", minval=1, group="ZONE SETTINGS", inline="zone1")
+zone_transparency = input.int(88, "Zone Transparency", minval=0, maxval=100, group="ZONE SETTINGS", inline="zone2")
+
+// ==================== SESSION 1: NEW YORK ====================
+session1_enabled = input.bool(true, "Enable", group="SESSION 1: NEW YORK", inline="s1")
+session1_name = input.string("New York", "Name", group="SESSION 1: NEW YORK", inline="s1")
+session1_color = input.color(color.new(#2962FF, 0), "Color", group="SESSION 1: NEW YORK", inline="s1")
+
+session1_start_dst = input.string("14:00", "DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 1: NEW YORK", inline="s1_dst")
+session1_end_dst = input.string("23:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 1: NEW YORK", inline="s1_dst")
+
+session1_start_std = input.string("13:00", "No DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 1: NEW YORK", inline="s1_std")
+session1_end_std = input.string("22:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 1: NEW YORK", inline="s1_std")
+
+session1_extend = input.bool(false, "Extend", group="SESSION 1: NEW YORK", inline="s1_opt")
+session1_zone = input.bool(false, "Zone", group="SESSION 1: NEW YORK", inline="s1_opt")
+
+// ==================== SESSION 2: LONDON ====================
+session2_enabled = input.bool(true, "Enable", group="SESSION 2: LONDON", inline="s2")
+session2_name = input.string("London", "Name", group="SESSION 2: LONDON", inline="s2")
+session2_color = input.color(color.new(#FF6D00, 0), "Color", group="SESSION 2: LONDON", inline="s2")
+
+session2_start_dst = input.string("09:00", "DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 2: LONDON", inline="s2_dst")
+session2_end_dst = input.string("18:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 2: LONDON", inline="s2_dst")
+
+session2_start_std = input.string("08:00", "No DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 2: LONDON", inline="s2_std")
+session2_end_std = input.string("17:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 2: LONDON", inline="s2_std")
+
+session2_extend = input.bool(false, "Extend", group="SESSION 2: LONDON", inline="s2_opt")
+session2_zone = input.bool(false, "Zone", group="SESSION 2: LONDON", inline="s2_opt")
+
+// ==================== SESSION 3: TOKYO ====================
+session3_enabled = input.bool(true, "Enable", group="SESSION 3: TOKYO", inline="s3")
+session3_name = input.string("Tokyo", "Name", group="SESSION 3: TOKYO", inline="s3")
+session3_color = input.color(color.new(#E91E63, 0), "Color", group="SESSION 3: TOKYO", inline="s3")
+
+session3_start_dst = input.string("00:00", "DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 3: TOKYO", inline="s3_dst")
+session3_end_dst = input.string("09:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 3: TOKYO", inline="s3_dst")
+
+session3_start_std = input.string("00:00", "No DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 3: TOKYO", inline="s3_std")
+session3_end_std = input.string("09:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 3: TOKYO", inline="s3_std")
+
+session3_extend = input.bool(false, "Extend", group="SESSION 3: TOKYO", inline="s3_opt")
+session3_zone = input.bool(false, "Zone", group="SESSION 3: TOKYO", inline="s3_opt")
+
+// ==================== SESSION 4: SYDNEY ====================
+session4_enabled = input.bool(true, "Enable", group="SESSION 4: SYDNEY", inline="s4")
+session4_name = input.string("Sydney", "Name", group="SESSION 4: SYDNEY", inline="s4")
+session4_color = input.color(color.new(#00BCD4, 0), "Color", group="SESSION 4: SYDNEY", inline="s4")
+
+session4_start_dst = input.string("21:00", "DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 4: SYDNEY", inline="s4_dst")
+session4_end_dst = input.string("06:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 4: SYDNEY", inline="s4_dst")
+
+session4_start_std = input.string("20:00", "No DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 4: SYDNEY", inline="s4_std")
+session4_end_std = input.string("05:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 4: SYDNEY", inline="s4_std")
+
+session4_extend = input.bool(false, "Extend", group="SESSION 4: SYDNEY", inline="s4_opt")
+session4_zone = input.bool(false, "Zone", group="SESSION 4: SYDNEY", inline="s4_opt")
+
+// ==================== SESSION 5: SHANGHAI ====================
+session5_enabled = input.bool(false, "Enable", group="SESSION 5: SHANGHAI", inline="s5")
+session5_name = input.string("Shanghai", "Name", group="SESSION 5: SHANGHAI", inline="s5")
+session5_color = input.color(color.new(#D32F2F, 0), "Color", group="SESSION 5: SHANGHAI", inline="s5")
+
+session5_start_dst = input.string("01:00", "DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 5: SHANGHAI", inline="s5_dst")
+session5_end_dst = input.string("09:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 5: SHANGHAI", inline="s5_dst")
+
+session5_start_std = input.string("01:00", "No DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 5: SHANGHAI", inline="s5_std")
+session5_end_std = input.string("09:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 5: SHANGHAI", inline="s5_std")
+
+session5_extend = input.bool(false, "Extend", group="SESSION 5: SHANGHAI", inline="s5_opt")
+session5_zone = input.bool(false, "Zone", group="SESSION 5: SHANGHAI", inline="s5_opt")
+
+// ==================== SESSION 6: EURONEXT ====================
+session6_enabled = input.bool(false, "Enable", group="SESSION 6: EURONEXT", inline="s6")
+session6_name = input.string("Euronext", "Name", group="SESSION 6: EURONEXT", inline="s6")
+session6_color = input.color(color.new(#1976D2, 0), "Color", group="SESSION 6: EURONEXT", inline="s6")
+
+session6_start_dst = input.string("07:00", "DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 6: EURONEXT", inline="s6_dst")
+session6_end_dst = input.string("16:30", "Close", options=["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"], group="SESSION 6: EURONEXT", inline="s6_dst")
+
+session6_start_std = input.string("06:00", "No DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 6: EURONEXT", inline="s6_std")
+session6_end_std = input.string("15:30", "Close", options=["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"], group="SESSION 6: EURONEXT", inline="s6_std")
+
+session6_extend = input.bool(false, "Extend", group="SESSION 6: EURONEXT", inline="s6_opt")
+session6_zone = input.bool(false, "Zone", group="SESSION 6: EURONEXT", inline="s6_opt")
+
+// ==================== SESSION 7: SHENZHEN ====================
+session7_enabled = input.bool(false, "Enable", group="SESSION 7: SHENZHEN", inline="s7")
+session7_name = input.string("Shenzhen", "Name", group="SESSION 7: SHENZHEN", inline="s7")
+session7_color = input.color(color.new(#7B1FA2, 0), "Color", group="SESSION 7: SHENZHEN", inline="s7")
+
+session7_start_dst = input.string("01:30", "DST Open", options=["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"], group="SESSION 7: SHENZHEN", inline="s7_dst")
+session7_end_dst = input.string("07:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 7: SHENZHEN", inline="s7_dst")
+
+session7_start_std = input.string("01:30", "No DST Open", options=["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"], group="SESSION 7: SHENZHEN", inline="s7_std")
+session7_end_std = input.string("07:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 7: SHENZHEN", inline="s7_std")
+
+session7_extend = input.bool(false, "Extend", group="SESSION 7: SHENZHEN", inline="s7_opt")
+session7_zone = input.bool(false, "Zone", group="SESSION 7: SHENZHEN", inline="s7_opt")
+
+// ==================== SESSION 8: MUMBAI ====================
+session8_enabled = input.bool(false, "Enable", group="SESSION 8: MUMBAI", inline="s8")
+session8_name = input.string("Mumbai", "Name", group="SESSION 8: MUMBAI", inline="s8")
+session8_color = input.color(color.new(#FF9800, 0), "Color", group="SESSION 8: MUMBAI", inline="s8")
+
+session8_start_dst = input.string("03:30", "DST Open", options=["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"], group="SESSION 8: MUMBAI", inline="s8_dst")
+session8_end_dst = input.string("11:30", "Close", options=["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"], group="SESSION 8: MUMBAI", inline="s8_dst")
+
+session8_start_std = input.string("03:30", "No DST Open", options=["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"], group="SESSION 8: MUMBAI", inline="s8_std")
+session8_end_std = input.string("11:30", "Close", options=["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"], group="SESSION 8: MUMBAI", inline="s8_std")
+
+session8_extend = input.bool(false, "Extend", group="SESSION 8: MUMBAI", inline="s8_opt")
+session8_zone = input.bool(false, "Zone", group="SESSION 8: MUMBAI", inline="s8_opt")
+
+// ==================== SESSION 9: HONG KONG ====================
+session9_enabled = input.bool(false, "Enable", group="SESSION 9: HONG KONG", inline="s9")
+session9_name = input.string("Hong Kong", "Name", group="SESSION 9: HONG KONG", inline="s9")
+session9_color = input.color(color.new(#4CAF50, 0), "Color", group="SESSION 9: HONG KONG", inline="s9")
+
+session9_start_dst = input.string("01:00", "DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 9: HONG KONG", inline="s9_dst")
+session9_end_dst = input.string("09:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 9: HONG KONG", inline="s9_dst")
+
+session9_start_std = input.string("01:00", "No DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 9: HONG KONG", inline="s9_std")
+session9_end_std = input.string("09:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 9: HONG KONG", inline="s9_std")
+
+session9_extend = input.bool(false, "Extend", group="SESSION 9: HONG KONG", inline="s9_opt")
+session9_zone = input.bool(false, "Zone", group="SESSION 9: HONG KONG", inline="s9_opt")
+
+// ==================== SESSION 10: TORONTO ====================
+session10_enabled = input.bool(false, "Enable", group="SESSION 10: TORONTO", inline="s10")
+session10_name = input.string("Toronto", "Name", group="SESSION 10: TORONTO", inline="s10")
+session10_color = input.color(color.new(#F44336, 0), "Color", group="SESSION 10: TORONTO", inline="s10")
+
+session10_start_dst = input.string("14:00", "DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 10: TORONTO", inline="s10_dst")
+session10_end_dst = input.string("23:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 10: TORONTO", inline="s10_dst")
+
+session10_start_std = input.string("13:00", "No DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 10: TORONTO", inline="s10_std")
+session10_end_std = input.string("22:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 10: TORONTO", inline="s10_std")
+
+session10_extend = input.bool(false, "Extend", group="SESSION 10: TORONTO", inline="s10_opt")
+session10_zone = input.bool(false, "Zone", group="SESSION 10: TORONTO", inline="s10_opt")
+
+// ==================== SESSION 11: ZURICH ====================
+session11_enabled = input.bool(false, "Enable", group="SESSION 11: ZURICH", inline="s11")
+session11_name = input.string("Zurich", "Name", group="SESSION 11: ZURICH", inline="s11")
+session11_color = input.color(color.new(#9C27B0, 0), "Color", group="SESSION 11: ZURICH", inline="s11")
+
+session11_start_dst = input.string("09:00", "DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 11: ZURICH", inline="s11_dst")
+session11_end_dst = input.string("17:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 11: ZURICH", inline="s11_dst")
+
+session11_start_std = input.string("08:00", "No DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 11: ZURICH", inline="s11_std")
+session11_end_std = input.string("16:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 11: ZURICH", inline="s11_std")
+
+session11_extend = input.bool(false, "Extend", group="SESSION 11: ZURICH", inline="s11_opt")
+session11_zone = input.bool(false, "Zone", group="SESSION 11: ZURICH", inline="s11_opt")
+
+// ==================== SESSION 12: FRANKFURT ====================
+session12_enabled = input.bool(false, "Enable", group="SESSION 12: FRANKFURT", inline="s12")
+session12_name = input.string("Frankfurt", "Name", group="SESSION 12: FRANKFURT", inline="s12")
+session12_color = input.color(color.new(#673AB7, 0), "Color", group="SESSION 12: FRANKFURT", inline="s12")
+
+session12_start_dst = input.string("08:00", "DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 12: FRANKFURT", inline="s12_dst")
+session12_end_dst = input.string("16:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 12: FRANKFURT", inline="s12_dst")
+
+session12_start_std = input.string("07:00", "No DST Open", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 12: FRANKFURT", inline="s12_std")
+session12_end_std = input.string("15:00", "Close", options=["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"], group="SESSION 12: FRANKFURT", inline="s12_std")
+
+session12_extend = input.bool(false, "Extend", group="SESSION 12: FRANKFURT", inline="s12_opt")
+session12_zone = input.bool(false, "Zone", group="SESSION 12: FRANKFURT", inline="s12_opt")
 
 // ==================== HELPER FUNCTIONS ====================
 
-// Convert border style string to Pine Script constant
-get_border_style(style_str) =>
-    style_str == "solid" ? line.style_solid :
-     style_str == "dot" ? line.style_dotted :
-     line.style_dashed
-
 // Convert label size string to Pine Script constant
 get_label_size(size_str) =>
-    size_str == "Klein" ? size.small :
-     size_str == "Normal" ? size.normal :
-     size.large
+    size_str == "tiny" ? size.tiny :
+     size_str == "small" ? size.small :
+     size_str == "normal" ? size.normal :
+     size_str == "large" ? size.large :
+     size.huge
 
-// Convert time string to timestamp (in minutes from midnight)
+// Convert time string to minutes from midnight (supports HH:MM and HH:MM format)
 parse_time(time_str) =>
     parts = str.split(time_str, ":")
-    hour = str.tonumber(array.get(parts, 0))
-    minute = str.tonumber(array.get(parts, 1))
-    hour * 60 + minute
+    hour_val = str.tonumber(array.get(parts, 0))
+    minute_part = array.get(parts, 1)
+    minute_val = str.tonumber(minute_part)
+    hour_val * 60 + minute_val
 
-// Check if current bar is in session
-in_session(start_time_str, end_time_str, tz_offset) =>
+// Check if current bar is in session (UTC-based)
+in_session(start_time_str, end_time_str) =>
     start_minutes = parse_time(start_time_str)
     end_minutes = parse_time(end_time_str)
-    current_minutes = (hour(time) * 60 + minute(time) + tz_offset + 1440) % 1440
+    current_minutes = hour(time, "UTC") * 60 + minute(time, "UTC")
 
     if end_minutes < start_minutes
         // Session crosses midnight
@@ -140,11 +216,11 @@ in_session(start_time_str, end_time_str, tz_offset) =>
     else
         current_minutes >= start_minutes and current_minutes < end_minutes
 
-// Detect session start
-is_session_start(start_time_str, tz_offset) =>
+// Detect session start (UTC-based)
+is_session_start(start_time_str) =>
     start_minutes = parse_time(start_time_str)
-    current_minutes = (hour(time) * 60 + minute(time) + tz_offset + 1440) % 1440
-    prev_minutes = (hour(time[1]) * 60 + minute(time[1]) + tz_offset + 1440) % 1440
+    current_minutes = hour(time, "UTC") * 60 + minute(time, "UTC")
+    prev_minutes = hour(time[1], "UTC") * 60 + minute(time[1], "UTC")
 
     // Check if we just crossed into the session start time
     if prev_minutes < start_minutes and current_minutes >= start_minutes
@@ -155,16 +231,16 @@ is_session_start(start_time_str, tz_offset) =>
     else
         false
 
-// Detect session end
-is_session_end(end_time_str, tz_offset) =>
+// Detect session end (UTC-based)
+is_session_end(end_time_str) =>
     end_minutes = parse_time(end_time_str)
-    current_minutes = (hour(time) * 60 + minute(time) + tz_offset + 1440) % 1440
-    prev_minutes = (hour(time[1]) * 60 + minute(time[1]) + tz_offset + 1440) % 1440
+    current_minutes = hour(time, "UTC") * 60 + minute(time, "UTC")
+    prev_minutes = hour(time[1], "UTC") * 60 + minute(time[1], "UTC")
 
     // Check if we just crossed the session end time
     if prev_minutes < end_minutes and current_minutes >= end_minutes
         true
-    // Handle midnight crossing (when session ends at 23:00, also end at midnight 00:00)
+    // Handle midnight crossing
     else if end_minutes == 0 and prev_minutes > current_minutes
         true
     // Handle end of day (23:00 -> 00:00 next day)
@@ -175,82 +251,80 @@ is_session_end(end_time_str, tz_offset) =>
 
 // ==================== SESSION TRACKING ====================
 
-// Variables to track session highs and lows
-var float session1_high = na
-var float session1_low = na
-var int session1_start_bar = na
-var bool session1_active = false
+// Session state variables will be managed by process_session function
 
-var float session2_high = na
-var float session2_low = na
-var int session2_start_bar = na
-var bool session2_active = false
+// ==================== DRAW SESSION BOX FUNCTION ====================
 
-var float session3_high = na
-var float session3_low = na
-var int session3_start_bar = na
-var bool session3_active = false
+draw_session_box(start_bar, end_bar, sess_high, sess_low, sess_color, transparency, extend, sess_name, show_zone, zone_mins, zone_transp, old_box, old_label, old_zone_box) =>
+    var box new_box = na
+    var label new_label = na
+    var box new_zone_box = na
 
-var float session4_high = na
-var float session4_low = na
-var int session4_start_bar = na
-var bool session4_active = false
-
-// ==================== PROCESS SESSIONS ====================
-
-draw_session_box(start_bar, end_bar, sess_high, sess_low, sess_color, border_style, thickness, transparency, extend, sess_name, show_fib, show_zone, zone_mins, zone_transp, fib_style, fib_thick) =>
     if not na(start_bar) and not na(sess_high) and not na(sess_low)
+        // Delete old boxes if history is disabled
+        if not show_history
+            if not na(old_box)
+                box.delete(old_box)
+            if not na(old_label)
+                label.delete(old_label)
+            if not na(old_zone_box)
+                box.delete(old_zone_box)
+
         // Draw main session box
-        box_border_color = color.new(sess_color, 0)
         box_bg_color = color.new(sess_color, transparency)
 
-        session_box = box.new(
+        new_box := box.new(
              left=start_bar,
              top=sess_high,
              right=end_bar,
              bottom=sess_low,
-             border_color=box_border_color,
+             border_color=color.new(sess_color, 100),
              bgcolor=box_bg_color,
-             border_width=thickness,
-             border_style=border_style,
+             border_width=0,
              extend=extend ? extend.right : extend.none
          )
 
         // Draw label
-        if show_labels and show_name
-            label.new(
-                 x=start_bar,
-                 y=sess_high,
+        if show_labels and sess_name != ""
+            // Vertical position - at the edge of the box with small offset
+            price_range = sess_high - sess_low
+            offset = price_range * 0.04  // 4% offset from edge
+            label_y = label_position == "Top" ? sess_high + offset : sess_low - offset
+
+            // Horizontal position based on alignment
+            label_x = label_align == "Left" ? start_bar :
+                     label_align == "Right" ? end_bar :
+                     int((start_bar + end_bar) / 2)
+
+            // Determine label style based on position and alignment
+            // For Left: text goes RIGHT from anchor point (stays inside box)
+            // For Right: text goes LEFT from anchor point (stays inside box)
+            label_style_val = label.style_label_center
+
+            if label_position == "Top"
+                if label_align == "Left"
+                    label_style_val := label.style_label_left
+                else if label_align == "Right"
+                    label_style_val := label.style_label_right
+                else
+                    label_style_val := label.style_label_down
+            else  // Bottom
+                if label_align == "Left"
+                    label_style_val := label.style_label_left
+                else if label_align == "Right"
+                    label_style_val := label.style_label_right
+                else
+                    label_style_val := label.style_label_up
+
+            new_label := label.new(
+                 x=label_x,
+                 y=label_y,
                  text=sess_name,
-                 color=color.new(color.white, 100),
+                 color=color.new(sess_color, 100),
                  textcolor=sess_color,
-                 style=label.style_label_lower_left,
+                 style=label_style_val,
                  size=get_label_size(label_size)
              )
-
-        // Draw Fibonacci levels
-        if show_fib and not na(sess_high) and not na(sess_low)
-            fib_border_style = get_border_style(fib_style)
-            range_val = sess_high - sess_low
-
-            // Fib levels: 0, 0.236, 0.382, 0.5, 0.618, 0.786, 1
-            fib_levels = array.from(0.0, 0.236, 0.382, 0.5, 0.618, 0.786, 1.0)
-
-            for i = 0 to array.size(fib_levels) - 1
-                fib_level = array.get(fib_levels, i)
-                fib_price = sess_low + range_val * fib_level
-                fib_color = color.new(sess_color, 50)
-
-                line.new(
-                     x1=start_bar,
-                     y1=fib_price,
-                     x2=end_bar,
-                     y2=fib_price,
-                     color=fib_color,
-                     style=fib_border_style,
-                     width=fib_thick,
-                     extend=extend ? extend.right : extend.none
-                 )
 
         // Draw Zone (shaded area around open/close)
         if show_zone
@@ -262,7 +336,7 @@ draw_session_box(start_bar, end_bar, sess_high, sess_low, sess_color, border_sty
             var float zone_high = sess_high
             var float zone_low = sess_low
 
-            box.new(
+            new_zone_box := box.new(
                  left=start_bar,
                  top=zone_high,
                  right=zone_end_bar,
@@ -272,80 +346,380 @@ draw_session_box(start_bar, end_bar, sess_high, sess_low, sess_color, border_sty
                  border_width=0
              )
 
-// ==================== SESSION 1: LONDON ====================
-tz_offset = get_timezone_offset()
+    [new_box, new_label, new_zone_box]
 
+// ==================== SESSION STATE VARIABLES ====================
+
+// Session 1
+var float s1_high = na
+var float s1_low = na
+var int s1_start_bar = na
+var bool s1_active = false
+var box s1_box = na
+var label s1_label = na
+var box s1_zone_box = na
+
+// Session 2
+var float s2_high = na
+var float s2_low = na
+var int s2_start_bar = na
+var bool s2_active = false
+var box s2_box = na
+var label s2_label = na
+var box s2_zone_box = na
+
+// Session 3
+var float s3_high = na
+var float s3_low = na
+var int s3_start_bar = na
+var bool s3_active = false
+var box s3_box = na
+var label s3_label = na
+var box s3_zone_box = na
+
+// Session 4
+var float s4_high = na
+var float s4_low = na
+var int s4_start_bar = na
+var bool s4_active = false
+var box s4_box = na
+var label s4_label = na
+var box s4_zone_box = na
+
+// Session 5
+var float s5_high = na
+var float s5_low = na
+var int s5_start_bar = na
+var bool s5_active = false
+var box s5_box = na
+var label s5_label = na
+var box s5_zone_box = na
+
+// Session 6
+var float s6_high = na
+var float s6_low = na
+var int s6_start_bar = na
+var bool s6_active = false
+var box s6_box = na
+var label s6_label = na
+var box s6_zone_box = na
+
+// Session 7
+var float s7_high = na
+var float s7_low = na
+var int s7_start_bar = na
+var bool s7_active = false
+var box s7_box = na
+var label s7_label = na
+var box s7_zone_box = na
+
+// Session 8
+var float s8_high = na
+var float s8_low = na
+var int s8_start_bar = na
+var bool s8_active = false
+var box s8_box = na
+var label s8_label = na
+var box s8_zone_box = na
+
+// Session 9
+var float s9_high = na
+var float s9_low = na
+var int s9_start_bar = na
+var bool s9_active = false
+var box s9_box = na
+var label s9_label = na
+var box s9_zone_box = na
+
+// Session 10
+var float s10_high = na
+var float s10_low = na
+var int s10_start_bar = na
+var bool s10_active = false
+var box s10_box = na
+var label s10_label = na
+var box s10_zone_box = na
+
+// Session 11
+var float s11_high = na
+var float s11_low = na
+var int s11_start_bar = na
+var bool s11_active = false
+var box s11_box = na
+var label s11_label = na
+var box s11_zone_box = na
+
+// Session 12
+var float s12_high = na
+var float s12_low = na
+var int s12_start_bar = na
+var bool s12_active = false
+var box s12_box = na
+var label s12_label = na
+var box s12_zone_box = na
+
+// ==================== PROCESS ALL SESSIONS ====================
+
+// Session 1: New York
 if session1_enabled
-    if is_session_start(session1_start, tz_offset)
-        session1_active := true
-        session1_start_bar := bar_index
-        session1_high := high
-        session1_low := low
+    start_time = use_dst ? session1_start_dst : session1_start_std
+    end_time = use_dst ? session1_end_dst : session1_end_std
 
-    if session1_active
-        session1_high := math.max(session1_high, high)
-        session1_low := math.min(session1_low, low)
+    if is_session_start(start_time)
+        s1_active := true
+        s1_start_bar := bar_index
+        s1_high := high
+        s1_low := low
 
-    if is_session_end(session1_end, tz_offset) and session1_active
-        session1_active := false
-        draw_session_box(session1_start_bar, bar_index, session1_high, session1_low,
-             session1_color, get_border_style(box_style_input), box_thickness, box_transparency,
-             session1_extend, session1_name, session1_fibonacci, session1_zone, zone_periods,
-             zone_transparency, fib_style_input, fib_thickness)
+    if s1_active
+        s1_high := math.max(s1_high, high)
+        s1_low := math.min(s1_low, low)
 
-// ==================== SESSION 2: NEW YORK ====================
+    if is_session_end(end_time) and s1_active
+        s1_active := false
+        [s1_box, s1_label, s1_zone_box] := draw_session_box(s1_start_bar, bar_index, s1_high, s1_low,
+             session1_color, box_transparency,
+             session1_extend, session1_name, session1_zone, zone_periods,
+             zone_transparency, s1_box, s1_label, s1_zone_box)
+
+// Session 2: London
 if session2_enabled
-    if is_session_start(session2_start, tz_offset)
-        session2_active := true
-        session2_start_bar := bar_index
-        session2_high := high
-        session2_low := low
+    start_time = use_dst ? session2_start_dst : session2_start_std
+    end_time = use_dst ? session2_end_dst : session2_end_std
 
-    if session2_active
-        session2_high := math.max(session2_high, high)
-        session2_low := math.min(session2_low, low)
+    if is_session_start(start_time)
+        s2_active := true
+        s2_start_bar := bar_index
+        s2_high := high
+        s2_low := low
 
-    if is_session_end(session2_end, tz_offset) and session2_active
-        session2_active := false
-        draw_session_box(session2_start_bar, bar_index, session2_high, session2_low,
-             session2_color, get_border_style(box_style_input), box_thickness, box_transparency,
-             session2_extend, session2_name, session2_fibonacci, session2_zone, zone_periods,
-             zone_transparency, fib_style_input, fib_thickness)
+    if s2_active
+        s2_high := math.max(s2_high, high)
+        s2_low := math.min(s2_low, low)
 
-// ==================== SESSION 3: TOKYO ====================
+    if is_session_end(end_time) and s2_active
+        s2_active := false
+        [s2_box, s2_label, s2_zone_box] := draw_session_box(s2_start_bar, bar_index, s2_high, s2_low,
+             session2_color, box_transparency,
+             session2_extend, session2_name, session2_zone, zone_periods,
+             zone_transparency, s2_box, s2_label, s2_zone_box)
+
+// Session 3: Tokyo
 if session3_enabled
-    if is_session_start(session3_start, tz_offset)
-        session3_active := true
-        session3_start_bar := bar_index
-        session3_high := high
-        session3_low := low
+    start_time = use_dst ? session3_start_dst : session3_start_std
+    end_time = use_dst ? session3_end_dst : session3_end_std
 
-    if session3_active
-        session3_high := math.max(session3_high, high)
-        session3_low := math.min(session3_low, low)
+    if is_session_start(start_time)
+        s3_active := true
+        s3_start_bar := bar_index
+        s3_high := high
+        s3_low := low
 
-    if is_session_end(session3_end, tz_offset) and session3_active
-        session3_active := false
-        draw_session_box(session3_start_bar, bar_index, session3_high, session3_low,
-             session3_color, get_border_style(box_style_input), box_thickness, box_transparency,
-             session3_extend, session3_name, session3_fibonacci, session3_zone, zone_periods,
-             zone_transparency, fib_style_input, fib_thickness)
+    if s3_active
+        s3_high := math.max(s3_high, high)
+        s3_low := math.min(s3_low, low)
 
-// ==================== SESSION 4: FRANKFURT ====================
+    if is_session_end(end_time) and s3_active
+        s3_active := false
+        [s3_box, s3_label, s3_zone_box] := draw_session_box(s3_start_bar, bar_index, s3_high, s3_low,
+             session3_color, box_transparency,
+             session3_extend, session3_name, session3_zone, zone_periods,
+             zone_transparency, s3_box, s3_label, s3_zone_box)
+
+// Session 4: Sydney
 if session4_enabled
-    if is_session_start(session4_start, tz_offset)
-        session4_active := true
-        session4_start_bar := bar_index
-        session4_high := high
-        session4_low := low
+    start_time = use_dst ? session4_start_dst : session4_start_std
+    end_time = use_dst ? session4_end_dst : session4_end_std
 
-    if session4_active
-        session4_high := math.max(session4_high, high)
-        session4_low := math.min(session4_low, low)
+    if is_session_start(start_time)
+        s4_active := true
+        s4_start_bar := bar_index
+        s4_high := high
+        s4_low := low
 
-    if is_session_end(session4_end, tz_offset) and session4_active
-        session4_active := false
-        draw_session_box(session4_start_bar, bar_index, session4_high, session4_low,
-             session4_color, get_border_style(box_style_input), box_thickness, box_transparency,
-             session4_extend, session4_name, session4_fibonacci, session4_zone, zone_periods,
-             zone_transparency, fib_style_input, fib_thickness)
+    if s4_active
+        s4_high := math.max(s4_high, high)
+        s4_low := math.min(s4_low, low)
+
+    if is_session_end(end_time) and s4_active
+        s4_active := false
+        [s4_box, s4_label, s4_zone_box] := draw_session_box(s4_start_bar, bar_index, s4_high, s4_low,
+             session4_color, box_transparency,
+             session4_extend, session4_name, session4_zone, zone_periods,
+             zone_transparency, s4_box, s4_label, s4_zone_box)
+
+// Session 5: Shanghai
+if session5_enabled
+    start_time = use_dst ? session5_start_dst : session5_start_std
+    end_time = use_dst ? session5_end_dst : session5_end_std
+
+    if is_session_start(start_time)
+        s5_active := true
+        s5_start_bar := bar_index
+        s5_high := high
+        s5_low := low
+
+    if s5_active
+        s5_high := math.max(s5_high, high)
+        s5_low := math.min(s5_low, low)
+
+    if is_session_end(end_time) and s5_active
+        s5_active := false
+        [s5_box, s5_label, s5_zone_box] := draw_session_box(s5_start_bar, bar_index, s5_high, s5_low,
+             session5_color, box_transparency,
+             session5_extend, session5_name, session5_zone, zone_periods,
+             zone_transparency, s5_box, s5_label, s5_zone_box)
+
+// Session 6: Euronext
+if session6_enabled
+    start_time = use_dst ? session6_start_dst : session6_start_std
+    end_time = use_dst ? session6_end_dst : session6_end_std
+
+    if is_session_start(start_time)
+        s6_active := true
+        s6_start_bar := bar_index
+        s6_high := high
+        s6_low := low
+
+    if s6_active
+        s6_high := math.max(s6_high, high)
+        s6_low := math.min(s6_low, low)
+
+    if is_session_end(end_time) and s6_active
+        s6_active := false
+        [s6_box, s6_label, s6_zone_box] := draw_session_box(s6_start_bar, bar_index, s6_high, s6_low,
+             session6_color, box_transparency,
+             session6_extend, session6_name, session6_zone, zone_periods,
+             zone_transparency, s6_box, s6_label, s6_zone_box)
+
+// Session 7: Shenzhen
+if session7_enabled
+    start_time = use_dst ? session7_start_dst : session7_start_std
+    end_time = use_dst ? session7_end_dst : session7_end_std
+
+    if is_session_start(start_time)
+        s7_active := true
+        s7_start_bar := bar_index
+        s7_high := high
+        s7_low := low
+
+    if s7_active
+        s7_high := math.max(s7_high, high)
+        s7_low := math.min(s7_low, low)
+
+    if is_session_end(end_time) and s7_active
+        s7_active := false
+        [s7_box, s7_label, s7_zone_box] := draw_session_box(s7_start_bar, bar_index, s7_high, s7_low,
+             session7_color, box_transparency,
+             session7_extend, session7_name, session7_zone, zone_periods,
+             zone_transparency, s7_box, s7_label, s7_zone_box)
+
+// Session 8: Mumbai
+if session8_enabled
+    start_time = use_dst ? session8_start_dst : session8_start_std
+    end_time = use_dst ? session8_end_dst : session8_end_std
+
+    if is_session_start(start_time)
+        s8_active := true
+        s8_start_bar := bar_index
+        s8_high := high
+        s8_low := low
+
+    if s8_active
+        s8_high := math.max(s8_high, high)
+        s8_low := math.min(s8_low, low)
+
+    if is_session_end(end_time) and s8_active
+        s8_active := false
+        draw_session_box(s8_start_bar, bar_index, s8_high, s8_low,
+             session8_color, box_transparency,
+             session8_extend, session8_name, session8_zone, zone_periods,
+             zone_transparency, s8_box, s8_label, s8_zone_box)
+
+// Session 9: Hong Kong
+if session9_enabled
+    start_time = use_dst ? session9_start_dst : session9_start_std
+    end_time = use_dst ? session9_end_dst : session9_end_std
+
+    if is_session_start(start_time)
+        s9_active := true
+        s9_start_bar := bar_index
+        s9_high := high
+        s9_low := low
+
+    if s9_active
+        s9_high := math.max(s9_high, high)
+        s9_low := math.min(s9_low, low)
+
+    if is_session_end(end_time) and s9_active
+        s9_active := false
+        draw_session_box(s9_start_bar, bar_index, s9_high, s9_low,
+             session9_color, box_transparency,
+             session9_extend, session9_name, session9_zone, zone_periods,
+             zone_transparency, s9_box, s9_label, s9_zone_box)
+
+// Session 10: Toronto
+if session10_enabled
+    start_time = use_dst ? session10_start_dst : session10_start_std
+    end_time = use_dst ? session10_end_dst : session10_end_std
+
+    if is_session_start(start_time)
+        s10_active := true
+        s10_start_bar := bar_index
+        s10_high := high
+        s10_low := low
+
+    if s10_active
+        s10_high := math.max(s10_high, high)
+        s10_low := math.min(s10_low, low)
+
+    if is_session_end(end_time) and s10_active
+        s10_active := false
+        draw_session_box(s10_start_bar, bar_index, s10_high, s10_low,
+             session10_color, box_transparency,
+             session10_extend, session10_name, session10_zone, zone_periods,
+             zone_transparency, s10_box, s10_label, s10_zone_box)
+
+// Session 11: Zurich
+if session11_enabled
+    start_time = use_dst ? session11_start_dst : session11_start_std
+    end_time = use_dst ? session11_end_dst : session11_end_std
+
+    if is_session_start(start_time)
+        s11_active := true
+        s11_start_bar := bar_index
+        s11_high := high
+        s11_low := low
+
+    if s11_active
+        s11_high := math.max(s11_high, high)
+        s11_low := math.min(s11_low, low)
+
+    if is_session_end(end_time) and s11_active
+        s11_active := false
+        draw_session_box(s11_start_bar, bar_index, s11_high, s11_low,
+             session11_color, box_transparency,
+             session11_extend, session11_name, session11_zone, zone_periods,
+             zone_transparency, s11_box, s11_label, s11_zone_box)
+
+// Session 12: Frankfurt
+if session12_enabled
+    start_time = use_dst ? session12_start_dst : session12_start_std
+    end_time = use_dst ? session12_end_dst : session12_end_std
+
+    if is_session_start(start_time)
+        s12_active := true
+        s12_start_bar := bar_index
+        s12_high := high
+        s12_low := low
+
+    if s12_active
+        s12_high := math.max(s12_high, high)
+        s12_low := math.min(s12_low, low)
+
+    if is_session_end(end_time) and s12_active
+        s12_active := false
+        draw_session_box(s12_start_bar, bar_index, s12_high, s12_low,
+             session12_color, box_transparency,
+             session12_extend, session12_name, session12_zone, zone_periods,
+             zone_transparency, s12_box, s12_label, s12_zone_box)

@@ -261,14 +261,13 @@ draw_session_box(start_bar, end_bar, sess_high, sess_low, sess_color, transparen
     var box new_zone_box = na
 
     if not na(start_bar) and not na(sess_high) and not na(sess_low)
-        // Delete old boxes if history is disabled
-        if not show_history
-            if not na(old_box)
-                box.delete(old_box)
-            if not na(old_label)
-                label.delete(old_label)
-            if not na(old_zone_box)
-                box.delete(old_zone_box)
+        // Delete old boxes (always delete during active session for real-time updates)
+        if not na(old_box)
+            box.delete(old_box)
+        if not na(old_label)
+            label.delete(old_label)
+        if not na(old_zone_box)
+            box.delete(old_zone_box)
 
         // Draw main session box
         box_bg_color = color.new(sess_color, transparency)
@@ -332,9 +331,10 @@ draw_session_box(start_bar, end_bar, sess_high, sess_low, sess_color, transparen
             zone_end_bar = start_bar + int(zone_bars)
             zone_color = color.new(sess_color, zone_transp)
 
-            // Get high/low during zone period
-            var float zone_high = sess_high
-            var float zone_low = sess_low
+            // Zone uses the same high/low as the full session
+            // In future could be enhanced to calculate actual high/low of zone period
+            zone_high = sess_high
+            zone_low = sess_low
 
             new_zone_box := box.new(
                  left=start_bar,
@@ -475,12 +475,17 @@ if session1_enabled
         s1_high := math.max(s1_high, high)
         s1_low := math.min(s1_low, low)
 
-    if is_session_end(end_time) and s1_active
-        s1_active := false
-        [s1_box, s1_label, s1_zone_box] := draw_session_box(s1_start_bar, bar_index, s1_high, s1_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s1_start_bar, bar_index, s1_high, s1_low,
              session1_color, box_transparency,
              session1_extend, session1_name, session1_zone, zone_periods,
              zone_transparency, s1_box, s1_label, s1_zone_box)
+        s1_box := new_box
+        s1_label := new_label
+        s1_zone_box := new_zone
+
+    if is_session_end(end_time) and s1_active
+        s1_active := false
 
 // Session 2: London
 if session2_enabled
@@ -497,12 +502,17 @@ if session2_enabled
         s2_high := math.max(s2_high, high)
         s2_low := math.min(s2_low, low)
 
-    if is_session_end(end_time) and s2_active
-        s2_active := false
-        [s2_box, s2_label, s2_zone_box] := draw_session_box(s2_start_bar, bar_index, s2_high, s2_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s2_start_bar, bar_index, s2_high, s2_low,
              session2_color, box_transparency,
              session2_extend, session2_name, session2_zone, zone_periods,
              zone_transparency, s2_box, s2_label, s2_zone_box)
+        s2_box := new_box
+        s2_label := new_label
+        s2_zone_box := new_zone
+
+    if is_session_end(end_time) and s2_active
+        s2_active := false
 
 // Session 3: Tokyo
 if session3_enabled
@@ -519,12 +529,17 @@ if session3_enabled
         s3_high := math.max(s3_high, high)
         s3_low := math.min(s3_low, low)
 
-    if is_session_end(end_time) and s3_active
-        s3_active := false
-        [s3_box, s3_label, s3_zone_box] := draw_session_box(s3_start_bar, bar_index, s3_high, s3_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s3_start_bar, bar_index, s3_high, s3_low,
              session3_color, box_transparency,
              session3_extend, session3_name, session3_zone, zone_periods,
              zone_transparency, s3_box, s3_label, s3_zone_box)
+        s3_box := new_box
+        s3_label := new_label
+        s3_zone_box := new_zone
+
+    if is_session_end(end_time) and s3_active
+        s3_active := false
 
 // Session 4: Sydney
 if session4_enabled
@@ -541,12 +556,17 @@ if session4_enabled
         s4_high := math.max(s4_high, high)
         s4_low := math.min(s4_low, low)
 
-    if is_session_end(end_time) and s4_active
-        s4_active := false
-        [s4_box, s4_label, s4_zone_box] := draw_session_box(s4_start_bar, bar_index, s4_high, s4_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s4_start_bar, bar_index, s4_high, s4_low,
              session4_color, box_transparency,
              session4_extend, session4_name, session4_zone, zone_periods,
              zone_transparency, s4_box, s4_label, s4_zone_box)
+        s4_box := new_box
+        s4_label := new_label
+        s4_zone_box := new_zone
+
+    if is_session_end(end_time) and s4_active
+        s4_active := false
 
 // Session 5: Shanghai
 if session5_enabled
@@ -563,12 +583,17 @@ if session5_enabled
         s5_high := math.max(s5_high, high)
         s5_low := math.min(s5_low, low)
 
-    if is_session_end(end_time) and s5_active
-        s5_active := false
-        [s5_box, s5_label, s5_zone_box] := draw_session_box(s5_start_bar, bar_index, s5_high, s5_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s5_start_bar, bar_index, s5_high, s5_low,
              session5_color, box_transparency,
              session5_extend, session5_name, session5_zone, zone_periods,
              zone_transparency, s5_box, s5_label, s5_zone_box)
+        s5_box := new_box
+        s5_label := new_label
+        s5_zone_box := new_zone
+
+    if is_session_end(end_time) and s5_active
+        s5_active := false
 
 // Session 6: Euronext
 if session6_enabled
@@ -585,12 +610,17 @@ if session6_enabled
         s6_high := math.max(s6_high, high)
         s6_low := math.min(s6_low, low)
 
-    if is_session_end(end_time) and s6_active
-        s6_active := false
-        [s6_box, s6_label, s6_zone_box] := draw_session_box(s6_start_bar, bar_index, s6_high, s6_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s6_start_bar, bar_index, s6_high, s6_low,
              session6_color, box_transparency,
              session6_extend, session6_name, session6_zone, zone_periods,
              zone_transparency, s6_box, s6_label, s6_zone_box)
+        s6_box := new_box
+        s6_label := new_label
+        s6_zone_box := new_zone
+
+    if is_session_end(end_time) and s6_active
+        s6_active := false
 
 // Session 7: Shenzhen
 if session7_enabled
@@ -607,12 +637,17 @@ if session7_enabled
         s7_high := math.max(s7_high, high)
         s7_low := math.min(s7_low, low)
 
-    if is_session_end(end_time) and s7_active
-        s7_active := false
-        [s7_box, s7_label, s7_zone_box] := draw_session_box(s7_start_bar, bar_index, s7_high, s7_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s7_start_bar, bar_index, s7_high, s7_low,
              session7_color, box_transparency,
              session7_extend, session7_name, session7_zone, zone_periods,
              zone_transparency, s7_box, s7_label, s7_zone_box)
+        s7_box := new_box
+        s7_label := new_label
+        s7_zone_box := new_zone
+
+    if is_session_end(end_time) and s7_active
+        s7_active := false
 
 // Session 8: Mumbai
 if session8_enabled
@@ -629,12 +664,17 @@ if session8_enabled
         s8_high := math.max(s8_high, high)
         s8_low := math.min(s8_low, low)
 
-    if is_session_end(end_time) and s8_active
-        s8_active := false
-        draw_session_box(s8_start_bar, bar_index, s8_high, s8_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s8_start_bar, bar_index, s8_high, s8_low,
              session8_color, box_transparency,
              session8_extend, session8_name, session8_zone, zone_periods,
              zone_transparency, s8_box, s8_label, s8_zone_box)
+        s8_box := new_box
+        s8_label := new_label
+        s8_zone_box := new_zone
+
+    if is_session_end(end_time) and s8_active
+        s8_active := false
 
 // Session 9: Hong Kong
 if session9_enabled
@@ -651,12 +691,17 @@ if session9_enabled
         s9_high := math.max(s9_high, high)
         s9_low := math.min(s9_low, low)
 
-    if is_session_end(end_time) and s9_active
-        s9_active := false
-        draw_session_box(s9_start_bar, bar_index, s9_high, s9_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s9_start_bar, bar_index, s9_high, s9_low,
              session9_color, box_transparency,
              session9_extend, session9_name, session9_zone, zone_periods,
              zone_transparency, s9_box, s9_label, s9_zone_box)
+        s9_box := new_box
+        s9_label := new_label
+        s9_zone_box := new_zone
+
+    if is_session_end(end_time) and s9_active
+        s9_active := false
 
 // Session 10: Toronto
 if session10_enabled
@@ -673,12 +718,17 @@ if session10_enabled
         s10_high := math.max(s10_high, high)
         s10_low := math.min(s10_low, low)
 
-    if is_session_end(end_time) and s10_active
-        s10_active := false
-        draw_session_box(s10_start_bar, bar_index, s10_high, s10_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s10_start_bar, bar_index, s10_high, s10_low,
              session10_color, box_transparency,
              session10_extend, session10_name, session10_zone, zone_periods,
              zone_transparency, s10_box, s10_label, s10_zone_box)
+        s10_box := new_box
+        s10_label := new_label
+        s10_zone_box := new_zone
+
+    if is_session_end(end_time) and s10_active
+        s10_active := false
 
 // Session 11: Zurich
 if session11_enabled
@@ -695,12 +745,17 @@ if session11_enabled
         s11_high := math.max(s11_high, high)
         s11_low := math.min(s11_low, low)
 
-    if is_session_end(end_time) and s11_active
-        s11_active := false
-        draw_session_box(s11_start_bar, bar_index, s11_high, s11_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s11_start_bar, bar_index, s11_high, s11_low,
              session11_color, box_transparency,
              session11_extend, session11_name, session11_zone, zone_periods,
              zone_transparency, s11_box, s11_label, s11_zone_box)
+        s11_box := new_box
+        s11_label := new_label
+        s11_zone_box := new_zone
+
+    if is_session_end(end_time) and s11_active
+        s11_active := false
 
 // Session 12: Frankfurt
 if session12_enabled
@@ -717,9 +772,14 @@ if session12_enabled
         s12_high := math.max(s12_high, high)
         s12_low := math.min(s12_low, low)
 
-    if is_session_end(end_time) and s12_active
-        s12_active := false
-        draw_session_box(s12_start_bar, bar_index, s12_high, s12_low,
+        // Update box in real-time during active session
+        [new_box, new_label, new_zone] = draw_session_box(s12_start_bar, bar_index, s12_high, s12_low,
              session12_color, box_transparency,
              session12_extend, session12_name, session12_zone, zone_periods,
              zone_transparency, s12_box, s12_label, s12_zone_box)
+        s12_box := new_box
+        s12_label := new_label
+        s12_zone_box := new_zone
+
+    if is_session_end(end_time) and s12_active
+        s12_active := false

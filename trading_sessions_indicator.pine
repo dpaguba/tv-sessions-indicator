@@ -1,5 +1,5 @@
 //@version=5
-indicator("Trading Sessions Indicator", overlay=true, max_boxes_count=500, max_labels_count=500, max_lines_count=500)
+indicator("TR I Sessions", overlay=true, max_boxes_count=500, max_labels_count=500, max_lines_count=500)
 
 // ==================== GENERAL SETTINGS ====================
 show_history = input.bool(true, "Show History", group="GENERAL")
